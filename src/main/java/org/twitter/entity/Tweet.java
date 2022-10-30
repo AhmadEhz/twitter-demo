@@ -3,7 +3,6 @@ package org.twitter.entity;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.twitter.base.entity.BaseEntity;
 
@@ -14,29 +13,41 @@ import java.util.Set;
 
 @Entity
 public class Tweet extends BaseEntity<Long> {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private Account account;
-    @NotNull
-    @Size(min = 1, max = 280)
-    @Column(columnDefinition = "text")
+    @Size(max = 280, message = "Characters of tweets is shouldn't ")
+    @Column(nullable = false, columnDefinition = "text")
     private String text;
     @OneToMany(mappedBy = "tweet")
     private Set<Like> likes;
     @Transient
     private long likeCount;
     @OneToOne
-    @JoinColumn(name = "comment_for")
+    @JoinColumn(name = "comment_for", nullable = true)
     private Tweet commentFor;
     @CreationTimestamp
     private LocalDateTime time;
     @UpdateTimestamp
-    private LocalDateTime updateAt;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public Tweet() {
     }
 
     public Tweet(String text) {
         this.text = text;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Account getAccount() {
@@ -79,12 +90,12 @@ public class Tweet extends BaseEntity<Long> {
         this.time = time;
     }
 
-    public LocalDateTime getUpdateAt() {
-        return updateAt;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setUpdateAt(LocalDateTime updateAt) {
-        this.updateAt = updateAt;
+    public void setUpdatedAt(LocalDateTime updateAt) {
+        this.updatedAt = updateAt;
     }
 
     public Tweet getComment() {
@@ -96,13 +107,28 @@ public class Tweet extends BaseEntity<Long> {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tweet tweet = (Tweet) o;
+        return Objects.equals(account, tweet.account)
+                && Objects.equals(text, tweet.text) && Objects.equals(commentFor, tweet.commentFor)
+                && Objects.equals(time, tweet.time) && Objects.equals(updatedAt, tweet.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(account, text, commentFor, time, updatedAt);
+    }
+
+    @Override
     public String toString() {
         return "Tweet{" +
                 "account=" + account +
                 ", text='" + text + '\'' +
                 ", likeCount=" + likeCount +
                 ", time=" + time +
-                ", updateAt=" + updateAt +
+                ", updateAt=" + updatedAt +
                 "} " + super.toString();
     }
 

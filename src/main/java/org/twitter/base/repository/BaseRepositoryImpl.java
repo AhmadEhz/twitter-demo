@@ -1,6 +1,7 @@
 package org.twitter.base.repository;
 
 import org.twitter.base.entity.BaseEntity;
+import org.twitter.entity.dto.AccountDto;
 
 import javax.persistence.EntityManager;
 import java.io.Serializable;

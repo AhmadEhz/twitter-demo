@@ -11,4 +11,6 @@ public interface BaseService<E extends BaseEntity<ID>, ID extends Serializable,R
     void save(E e);
     void update(E e);
     void delete (E e);
+
+    void detach(E e);
 }

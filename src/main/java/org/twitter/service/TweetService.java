@@ -13,4 +13,6 @@ public interface TweetService extends BaseService<Tweet,Long, TweetRepository> {
     Tweet saveComment(String tweet, Long tweetId, String accountUsername, String accountPassword);
 
     List<TweetDto> loadAll();
+
+    void update(String text, Long tweetId, String accountUsername, String accountPassword);
 }

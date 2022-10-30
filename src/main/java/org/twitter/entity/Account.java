@@ -1,33 +1,39 @@
 package org.twitter.entity;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import org.hibernate.validator.constraints.UniqueElements;
 import org.twitter.base.entity.BaseEntity;
+import org.twitter.entity.dto.AccountDto;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
 @Entity
 public class Account extends BaseEntity<Long> {
-    @Column(unique = true)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(unique = true,nullable = false)
     @Pattern(regexp = "^[A-Za-z0-9_.]{5,255}$", message = "Username pattern incorrect!")
     private String username;
-    @Pattern(regexp = "^[A-Za-z0-9._$%^&*#!@\\-/\\\\]{8,}$",message = "Password must contains at least 8 character")
+    @Column(nullable = false)
+    @Pattern(regexp = "^[A-Za-z0-9._$%^&*#!@\\-/\\\\]{8,}$", message = "Password must contains at least 8 character")
     private String password;
+    @Column(nullable = false)
+    @NotEmpty
     private String name;
     @Email
     private String email;
     @OneToMany(mappedBy = "account")
     private Set<Tweet> tweets;
-    @OneToMany(mappedBy = "account")
-    private Set<Like> likedTweets;
-    @OneToMany
-    private Set<Account> followers;
-    @OneToMany
-    private Set<Account> followings;
+    @Transient
+    private Long followers;
+    @Transient
+    private Long followings;
 
 
     public Account() {
@@ -38,23 +44,41 @@ public class Account extends BaseEntity<Long> {
         this.password = password;
         this.name = name;
     }
+
+    public Account(String username, String password, String name, String email) {
+        this.username = username;
+        this.password = password;
+        this.name = name;
+        this.email = email;
+    }
+
     public Account(Long id, String username, String name) {
         setId(id);
         this.username = username;
         this.name = name;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Account account = (Account) o;
-        return username.equals(account.username)&& name.equals(account.name);
+        if (o == null) return false;
+        if (o instanceof AccountDto)
+        {
+            return o.equals(this);
+        }
+        else if(o instanceof Account account)
+            return username.equals(account.username) && name.equals(account.name);
+
+        else return false;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(username, name);
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -89,12 +113,33 @@ public class Account extends BaseEntity<Long> {
         this.tweets = tweets;
     }
 
-    public Set<Like> getLikedTweets() {
-        return likedTweets;
+    public String getEmail() {
+        return email;
     }
 
-    public void setLikedTweets(Set<Like> likedTweets) {
-        this.likedTweets = likedTweets;
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Long getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(Long followers) {
+        this.followers = followers;
+    }
+
+    public Long getFollowings() {
+        return followings;
+    }
+
+    public void setFollowings(Long followings) {
+        this.followings = followings;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(username, name);
     }
 
     @Override
@@ -103,7 +148,6 @@ public class Account extends BaseEntity<Long> {
                 "username='" + username + '\'' +
                 ", password='" + password + '\'' +
                 ", name='" + name + '\'' +
-                ", likedTweets=" + likedTweets +
                 ", followers=" + followers +
                 ", followings=" + followings +
                 "} " + super.toString();

@@ -10,8 +10,6 @@ import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public abstract class BaseServiceImpl<E extends BaseEntity<ID>, ID extends Serializable, R extends BaseRepository<E, ID>> implements BaseService<E, ID, R> {
     protected final R repository;
@@ -30,33 +28,43 @@ public abstract class BaseServiceImpl<E extends BaseEntity<ID>, ID extends Seria
     @Override
     public void save(E e) {
         checkEntity(e);
-        execute(e, entity -> entityManager.persist(entity));
+        execute(() -> entityManager.persist(e));
     }
 
     @Override
     public void update(E e) {
         checkEntity(e);
-        execute(e, entity -> entityManager.merge(entity));
+        execute(() -> entityManager.merge(e));
     }
 
     @Override
     public void delete(E e) {
-        execute(e, entity -> entityManager.remove(entity));
+        execute(() -> entityManager.remove(e));
+    }
+    @Override
+    public void detach(E e) {
+        entityManager.detach(e);
     }
 
-    private void execute(E e, Consumer<E> consumer) {
+    protected void execute(Runnable runnable) {
         try {
             entityManager.getTransaction().begin();
-            consumer.accept(e);
+            runnable.run();
             entityManager.getTransaction().commit();
         } catch (Exception ex) {
-            entityManager.getTransaction().rollback();
-            ex.printStackTrace();
+            try {
+                entityManager.getTransaction().rollback();
+            } catch (Exception ex2) {
+                ex2.addSuppressed(ex);
+                throw ex2;
+            }
+            throw ex;
         }
     }
-    private void checkEntity (E e) {
+
+    protected void checkEntity(E e) {
         Set<ConstraintViolation<E>> constraintViolations = HibernateUtil.getValidator().validate(e);
-        if(!constraintViolations.isEmpty()) {
+        if (!constraintViolations.isEmpty()) {
             throw new CustomizedIllegalArgumentException(constraintViolations.toString());
         }
     }

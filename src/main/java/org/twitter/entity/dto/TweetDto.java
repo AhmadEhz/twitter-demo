@@ -32,7 +32,7 @@ public class TweetDto {
         text = tweet.getText();
         likeCount = tweet.getLikeCount();
         time = tweet.getTime();
-        updateAt = tweet.getUpdateAt();
+        updateAt = tweet.getUpdatedAt();
     }
 
 

@@ -7,11 +7,17 @@ import org.twitter.entity.dto.TweetDto;
 import java.util.List;
 
 public interface TweetRepository extends BaseRepository<Tweet,Long> {
-    Tweet save(String tweet, String accountUsername, String accountPassword);
+    Long save(String tweet, String accountUsername, String accountPassword);
 
-    Tweet saveComment(String tweet, Long tweetId, String accountUsername, String accountPassword);
+    Long saveComment(String tweet, Long tweetId, String accountUsername, String accountPassword);
 
     List<TweetDto> loadAll();
 
     List<TweetDto> loadComments(long tweetId);
+
+    void like(Long tweetId, String accountUsername, String accountPassword);
+
+    void unlike(Long tweetId, String accountUsername, String accountPassword);
+
+    void update(String text, Long tweetId, String accountUsername, String accountPassword);
 }
